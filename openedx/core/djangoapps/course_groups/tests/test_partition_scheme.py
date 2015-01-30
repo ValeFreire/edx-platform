@@ -348,10 +348,9 @@ class TestMasqueradedGroup(StaffMasqueradeTestCase):
         # Send the request to set the masquerade
         request_json = {
             "role": "student",
+            "user_partition_id": self.user_partition.id,
+            "group_id": group.id if group is not None else None
         }
-        if group and self.user_partition:
-            request_json['user_partition_id'] = self.user_partition.id
-            request_json['group_id'] = group.id
         request = self._create_mock_json_request(
             self.test_user,
             body=json.dumps(request_json),
@@ -375,4 +374,27 @@ class TestMasqueradedGroup(StaffMasqueradeTestCase):
         """
         self._verify_masquerade_for_group(self.user_partition.groups[0])
         self._verify_masquerade_for_group(self.user_partition.groups[1])
+        self._verify_masquerade_for_group(None)
+
+    @skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in LMS')
+    @patch.dict('django.conf.settings.FEATURES', {'DISABLE_START_DATES': False})
+    def test_group_masquerade_with_cohort(self):
+        """
+        Tests that a staff member can masquerade as being in a particular group
+        when that staff member also belongs to a cohort with a corresponding
+        group.
+        """
+        self.course.cohort_config = {'cohorted': True}
+        self.update_course(self.course, self.test_user.id)
+        cohort = CohortFactory.create(course_id=self.course.id, users=[self.test_user])
+        CourseUserGroupPartitionGroup(
+            course_user_group=cohort,
+            partition_id=self.user_partition.id,
+            group_id=self.user_partition.groups[0].id
+        ).save()
+
+        # When the staff user is masquerading as being in a None group
+        # (within an existent UserPartition), we should treat that as
+        # an explicit None, not defaulting to the user's cohort's
+        # partition group.
         self._verify_masquerade_for_group(None)
