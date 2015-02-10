@@ -359,7 +359,8 @@ def _cert_info(user, course, cert_status):
             if current_config.enabled:
                 cert_name = u'{type} Certificate for {cert_name}'.format(
                     type=cert_status["mode"].title(), cert_name=course.display_name
-                )
+                ).encode('utf-8')
+
                 params_dict = {
                     'pfCertificationName': cert_name,
                     'pfCertificationUrl': cert_status['download_url']

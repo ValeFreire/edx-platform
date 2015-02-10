@@ -154,6 +154,26 @@ class CourseEndingTest(TestCase):
             }
         )
 
+        # Test case with linked-in add to profile button. Linked-In URL has required params.
+        download_url = 'http://s3.edx/cert'
+        cert_status = {
+            'status': 'downloadable', 'grade': '67',
+            'download_url': download_url,
+            'mode': 'honor'
+        }
+
+
+        linkedin_current = Mock()
+        linkedin_current.enabled = True
+        linkedin_current.linkedin_url = 'http://www.linkedin.com/profile/add?_ed=0'
+
+        with patch('student.views.LinkedInUrlConfiguration.current', return_value=linkedin_current):
+            status_dict = _cert_info(user, course, cert_status)
+            self.assertIn('http://www.linkedin.com/profile/add?_ed=0', status_dict['linked_in_url'])
+            self.assertIn('pfCertificationName', status_dict['linked_in_url'])
+            self.assertIn('pfCertificationUrl', status_dict['linked_in_url'])
+
+
         # Test a course that doesn't have a survey specified
         course2 = Mock(end_of_course_survey_url=None)
         cert_status = {
@@ -184,6 +204,30 @@ class CourseEndingTest(TestCase):
             'mode': 'honor'
         }
         self.assertIsNone(_cert_info(user, course2, cert_status))
+
+    def test_linked_in_url_with_unicode_course_display_name(self):
+        """Test with unicode display name values."""
+
+        user = Mock(username="fred")
+        survey_url = "http://a_survey.com"
+        course = Mock(end_of_course_survey_url=survey_url, certificates_display_behavior='end')
+        course.display_name = u'edx/abc/registers®'
+        download_url = 'http://s3.edx/cert'
+
+        cert_status = {
+            'status': 'downloadable', 'grade': '67',
+            'download_url': download_url,
+            'mode': 'honor'
+        }
+        linkedin_current = Mock()
+        linkedin_current.enabled = True
+        linkedin_current.linkedin_url = 'http://www.linkedin.com/profile/add?_ed=0'
+
+        with patch('student.views.LinkedInUrlConfiguration.current', return_value=linkedin_current):
+            status_dict = _cert_info(user, course, cert_status)
+            self.assertIn('http://www.linkedin.com/profile/add?_ed=0', status_dict['linked_in_url'])
+            self.assertIn('pfCertificationName', status_dict['linked_in_url'])
+            self.assertIn('pfCertificationUrl', status_dict['linked_in_url'])
 
 
 class DashboardTest(ModuleStoreTestCase):
@@ -376,6 +420,7 @@ class DashboardTest(ModuleStoreTestCase):
             mode_display_name='Verified',
             expiration_datetime=datetime.now(pytz.UTC) + timedelta(days=1)
         )
+
         enrollment = CourseEnrollment.enroll(self.user, self.course.id, mode='verified')
 
         self.assertTrue(enrollment.refundable())
@@ -389,6 +434,30 @@ class DashboardTest(ModuleStoreTestCase):
 
         self.assertFalse(enrollment.refundable())
 
+
+    @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+    def test_linked_in_add_to_profile_btn_with_certificate(self):
+
+        CourseModeFactory.create(
+            course_id=self.course.id,
+            mode_slug='verified',
+            mode_display_name='Verified',
+            expiration_datetime=datetime.now(pytz.UTC) - timedelta(days=1)
+        )
+
+        self.course.end = datetime.now()
+        self.course.certificates_display_behavior = 'end'
+        self.course = self.update_course(self.course, self.user.id)
+
+        GeneratedCertificateFactory.create(
+            user=self.user,
+            course_id=self.course.id,
+            status=CertificateStatuses.downloadable,
+            mode='verified'
+        )
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
 
 class EnrollInCourseTest(TestCase):
     """Tests enrolling and unenrolling in courses."""
