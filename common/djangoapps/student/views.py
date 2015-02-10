@@ -55,7 +55,7 @@ from student.models import (
     PendingEmailChange, CourseEnrollment, unique_id_for_user,
     CourseEnrollmentAllowed, UserStanding, LoginFailures,
     create_comments_service_user, PasswordHistory, UserSignupSource,
-    DashboardConfiguration,LinkedInUrlConfiguration)
+    DashboardConfiguration, LinkedInUrlConfiguration)
 from student.forms import PasswordResetFormNoActive
 
 from verify_student.models import SoftwareSecurePhotoVerification, MidcourseReverificationWindow
@@ -352,17 +352,20 @@ def _cert_info(user, course, cert_status):
             status_dict['download_url'] = cert_status['download_url']
 
             # getting linkedin URL and then pass the params which appears
-            # on user profile
-            linked_in_url = LinkedInUrlConfiguration.current().linkedin_url
-            cert_name = '{type} Certificate for {cert_name}'.format(
-                type=cert_status["mode"].title(), cert_name=course.display_name
-            )
-            params_dict = {
-                'pfCertificationName': cert_name,
-                'pfCertificationUrl': cert_status['download_url']
-            }
+            # on user profile. if linkedin config is empty don't show the button.
 
-            status_dict['linked_in_url'] = linked_in_url + urlencode(params_dict)
+            status_dict['linked_in_url'] = False
+            linked_in_config = LinkedInUrlConfiguration.current()
+            if linked_in_config.linkedin_url:
+                cert_name = u'{type} Certificate for {cert_name}'.format(
+                    type=cert_status["mode"].title(), cert_name=course.display_name
+                )
+                params_dict = {
+                    'pfCertificationName': cert_name,
+                    'pfCertificationUrl': cert_status['download_url']
+                }
+
+                status_dict['linked_in_url'] = linked_in_config.linkedin_url + "&" + urlencode(params_dict)
 
     if status in ('generating', 'ready', 'notpassing', 'restricted'):
         if 'grade' not in cert_status:

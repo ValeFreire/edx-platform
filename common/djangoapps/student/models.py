@@ -1444,5 +1444,9 @@ class LinkedInUrlConfiguration(ConfigurationModel):
     # linked-in URL field
     linkedin_url = models.URLField(
         blank=True,
-        help_text="A LinkedIn URL for the Add-to-profile Certificates."
+        help_text="A LinkedIn URL for the Add-to-profile Certificates. e.g http://www.linkedin.com/profile/add?_ed="
+                  "0_0dPSPyS070e0HsE9HNz_13_d11_"
     )
+
+    def __unicode__(self):
+        return self.linkedin_url

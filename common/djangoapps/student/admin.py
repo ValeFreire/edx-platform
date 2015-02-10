@@ -6,7 +6,7 @@ from config_models.admin import ConfigurationModelAdmin
 
 from student.models import UserProfile, UserTestGroup, CourseEnrollmentAllowed, DashboardConfiguration
 from student.models import (
-    CourseEnrollment, Registration, PendingNameChange, CourseAccessRole ,LinkedInUrlConfiguration
+    CourseEnrollment, Registration, PendingNameChange, CourseAccessRole, LinkedInUrlConfiguration
 )
 from ratelimitbackend import admin
 from student.roles import REGISTERED_ACCESS_ROLES
