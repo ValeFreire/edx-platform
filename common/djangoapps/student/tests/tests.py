@@ -78,7 +78,8 @@ class CourseEndingTest(TestCase):
                 'show_disabled_download_button': False,
                 'show_download_url': False,
                 'show_survey_button': False,
-                'mode': None
+                'mode': None,
+                'linked_in_url': False
             }
         )
 
@@ -92,7 +93,8 @@ class CourseEndingTest(TestCase):
                 'show_survey_button': True,
                 'survey_url': survey_url,
                 'grade': '67',
-                'mode': 'honor'
+                'mode': 'honor',
+                'linked_in_url': False
             }
         )
 
@@ -106,7 +108,8 @@ class CourseEndingTest(TestCase):
                 'show_survey_button': True,
                 'survey_url': survey_url,
                 'grade': '67',
-                'mode': 'verified'
+                'mode': 'verified',
+                'linked_in_url': False
             }
         )
 
@@ -116,6 +119,7 @@ class CourseEndingTest(TestCase):
             'download_url': download_url,
             'mode': 'honor'
         }
+
         self.assertEqual(
             _cert_info(user, course, cert_status),
             {
@@ -126,7 +130,8 @@ class CourseEndingTest(TestCase):
                 'show_survey_button': True,
                 'survey_url': survey_url,
                 'grade': '67',
-                'mode': 'honor'
+                'mode': 'honor',
+                'linked_in_url': False
             }
         )
 
@@ -144,7 +149,8 @@ class CourseEndingTest(TestCase):
                 'show_survey_button': True,
                 'survey_url': survey_url,
                 'grade': '67',
-                'mode': 'honor'
+                'mode': 'honor',
+                'linked_in_url': False
             }
         )
 
@@ -162,7 +168,8 @@ class CourseEndingTest(TestCase):
                 'show_download_url': False,
                 'show_survey_button': False,
                 'grade': '67',
-                'mode': 'honor'
+                'mode': 'honor',
+                'linked_in_url': False
             }
         )
 
