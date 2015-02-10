@@ -162,7 +162,6 @@ class CourseEndingTest(TestCase):
             'mode': 'honor'
         }
 
-
         linkedin_current = Mock()
         linkedin_current.enabled = True
         linkedin_current.linkedin_url = 'http://www.linkedin.com/profile/add?_ed=0'
@@ -172,7 +171,6 @@ class CourseEndingTest(TestCase):
             self.assertIn('http://www.linkedin.com/profile/add?_ed=0', status_dict['linked_in_url'])
             self.assertIn('pfCertificationName', status_dict['linked_in_url'])
             self.assertIn('pfCertificationUrl', status_dict['linked_in_url'])
-
 
         # Test a course that doesn't have a survey specified
         course2 = Mock(end_of_course_survey_url=None)
@@ -434,7 +432,6 @@ class DashboardTest(ModuleStoreTestCase):
 
         self.assertFalse(enrollment.refundable())
 
-
     @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_linked_in_add_to_profile_btn_with_certificate(self):
 
@@ -458,6 +455,7 @@ class DashboardTest(ModuleStoreTestCase):
         response = self.client.get(reverse('dashboard'))
 
         self.assertEqual(response.status_code, 200)
+
 
 class EnrollInCourseTest(TestCase):
     """Tests enrolling and unenrolling in courses."""
