@@ -22,7 +22,7 @@ from opaque_keys.edx.locations import SlashSeparatedCourseKey
 
 from student.models import (
     anonymous_id_for_user, user_by_anonymous_id, CourseEnrollment, unique_id_for_user,
-    LinkedInUrlConfiguration
+    LinkedInAddToProfileConfiguration
 )
 from student.views import (process_survey_link, _cert_info,
                            change_enrollment, complete_course_mode_info)
@@ -200,7 +200,7 @@ class CourseEndingTest(TestCase):
             'download_url': download_url,
             'mode': 'honor'
         }
-        LinkedInUrlConfiguration(linkedin_url='http://www.linkedin.com/profile/add?_ed=0', enabled=True).save()
+        LinkedInAddToProfileConfiguration(linkedin_url='http://www.linkedin.com/profile/add?_ed=0', enabled=True).save()
 
         status_dict = _cert_info(user, course, cert_status)
         self.assertIn('http://www.linkedin.com/profile/add?_ed=0', status_dict['linked_in_url'])
@@ -214,7 +214,7 @@ class CourseEndingTest(TestCase):
         survey_url = "http://a_survey.com"
         course = Mock(end_of_course_survey_url=survey_url, certificates_display_behavior='end')
 
-        LinkedInUrlConfiguration(linkedin_url='http://www.linkedin.com/profile/add?_ed=0', enabled=True).save()
+        LinkedInAddToProfileConfiguration(linkedin_url='http://www.linkedin.com/profile/add?_ed=0', enabled=True).save()
 
         download_url = 'http://s3.edx/cert'
         cert_status = {
@@ -443,7 +443,7 @@ class DashboardTest(ModuleStoreTestCase):
 
         self.client.login(username="jack", password="test")
         url = 'http://www.linkedin.com/profile/add?_ed=0'
-        LinkedInUrlConfiguration(linkedin_url=url, enabled=True).save()
+        LinkedInAddToProfileConfiguration(linkedin_url=url, enabled=True).save()
 
         CourseModeFactory.create(
             course_id=self.course.id,

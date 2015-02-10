@@ -6,7 +6,7 @@ from config_models.admin import ConfigurationModelAdmin
 
 from student.models import UserProfile, UserTestGroup, CourseEnrollmentAllowed, DashboardConfiguration
 from student.models import (
-    CourseEnrollment, Registration, PendingNameChange, CourseAccessRole, LinkedInUrlConfiguration
+    CourseEnrollment, Registration, PendingNameChange, CourseAccessRole, LinkedInAddToProfileConfiguration
 )
 from ratelimitbackend import admin
 from student.roles import REGISTERED_ACCESS_ROLES
@@ -45,4 +45,4 @@ admin.site.register(CourseAccessRole, CourseAccessRoleAdmin)
 
 admin.site.register(DashboardConfiguration, ConfigurationModelAdmin)
 
-admin.site.register(LinkedInUrlConfiguration)
+admin.site.register(LinkedInAddToProfileConfiguration)

@@ -55,7 +55,7 @@ from student.models import (
     PendingEmailChange, CourseEnrollment, unique_id_for_user,
     CourseEnrollmentAllowed, UserStanding, LoginFailures,
     create_comments_service_user, PasswordHistory, UserSignupSource,
-    DashboardConfiguration, LinkedInUrlConfiguration)
+    DashboardConfiguration, LinkedInAddToProfileConfiguration)
 from student.forms import PasswordResetFormNoActive
 
 from verify_student.models import SoftwareSecurePhotoVerification, MidcourseReverificationWindow
@@ -355,7 +355,7 @@ def _cert_info(user, course, cert_status):
             # getting linkedin URL and then pass the params which appears
             # on user profile. if linkedin config is empty don't show the button.
 
-            current_config = LinkedInUrlConfiguration.current()
+            current_config = LinkedInAddToProfileConfiguration.current()
             if current_config.enabled:
                 cert_name = u'{type} Certificate for {cert_name}'.format(
                     type=cert_status["mode"].title(), cert_name=course.display_name
@@ -367,7 +367,7 @@ def _cert_info(user, course, cert_status):
                 }
 
                 status_dict['linked_in_url'] = u'{link_url}&{params}'.format(
-                    link_url=current_config.linkedin_url, params=urlencode(params_dict)
+                    link_url=current_config.dashboard_tracking_code, params=urlencode(params_dict)
                 )
 
     if status in ('generating', 'ready', 'notpassing', 'restricted'):

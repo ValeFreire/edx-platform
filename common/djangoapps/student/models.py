@@ -1438,12 +1438,12 @@ class DashboardConfiguration(ConfigurationModel):
         return self.recent_enrollment_time_delta
 
 
-class LinkedInUrlConfiguration(ConfigurationModel):
+class LinkedInAddToProfileConfiguration(ConfigurationModel):
     """
-    Register Linked Add to Profile Link
+    Register LinkedIn Add to Profile Configuration
     """
     # linked-in URL field
-    linkedin_url = models.URLField(
+    dashboard_tracking_code = models.URLField(
         blank=True,
         help_text=ugettext_lazy(
             u"A LinkedIn URL for the Add-to-profile Certificates. "
