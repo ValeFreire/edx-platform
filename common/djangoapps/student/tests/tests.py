@@ -21,7 +21,8 @@ from mock import Mock, patch
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
 
 from student.models import (
-    anonymous_id_for_user, user_by_anonymous_id, CourseEnrollment, unique_id_for_user
+    anonymous_id_for_user, user_by_anonymous_id, CourseEnrollment, unique_id_for_user,
+    LinkedInUrlConfiguration
 )
 from student.views import (process_survey_link, _cert_info,
                            change_enrollment, complete_course_mode_info)
@@ -79,7 +80,7 @@ class CourseEndingTest(TestCase):
                 'show_download_url': False,
                 'show_survey_button': False,
                 'mode': None,
-                'linked_in_url': False
+                'linked_in_url': None
             }
         )
 
@@ -94,7 +95,7 @@ class CourseEndingTest(TestCase):
                 'survey_url': survey_url,
                 'grade': '67',
                 'mode': 'honor',
-                'linked_in_url': False
+                'linked_in_url': None
             }
         )
 
@@ -109,7 +110,7 @@ class CourseEndingTest(TestCase):
                 'survey_url': survey_url,
                 'grade': '67',
                 'mode': 'verified',
-                'linked_in_url': False
+                'linked_in_url': None
             }
         )
 
@@ -131,7 +132,7 @@ class CourseEndingTest(TestCase):
                 'survey_url': survey_url,
                 'grade': '67',
                 'mode': 'honor',
-                'linked_in_url': False
+                'linked_in_url': None
             }
         )
 
@@ -150,27 +151,9 @@ class CourseEndingTest(TestCase):
                 'survey_url': survey_url,
                 'grade': '67',
                 'mode': 'honor',
-                'linked_in_url': False
+                'linked_in_url': None
             }
         )
-
-        # Test case with linked-in add to profile button. Linked-In URL has required params.
-        download_url = 'http://s3.edx/cert'
-        cert_status = {
-            'status': 'downloadable', 'grade': '67',
-            'download_url': download_url,
-            'mode': 'honor'
-        }
-
-        linkedin_current = Mock()
-        linkedin_current.enabled = True
-        linkedin_current.linkedin_url = 'http://www.linkedin.com/profile/add?_ed=0'
-
-        with patch('student.views.LinkedInUrlConfiguration.current', return_value=linkedin_current):
-            status_dict = _cert_info(user, course, cert_status)
-            self.assertIn('http://www.linkedin.com/profile/add?_ed=0', status_dict['linked_in_url'])
-            self.assertIn('pfCertificationName', status_dict['linked_in_url'])
-            self.assertIn('pfCertificationUrl', status_dict['linked_in_url'])
 
         # Test a course that doesn't have a survey specified
         course2 = Mock(end_of_course_survey_url=None)
@@ -187,7 +170,7 @@ class CourseEndingTest(TestCase):
                 'show_survey_button': False,
                 'grade': '67',
                 'mode': 'honor',
-                'linked_in_url': False
+                'linked_in_url': None
             }
         )
 
@@ -209,7 +192,7 @@ class CourseEndingTest(TestCase):
         user = Mock(username="fred")
         survey_url = "http://a_survey.com"
         course = Mock(end_of_course_survey_url=survey_url, certificates_display_behavior='end')
-        course.display_name = u'edx/abc/registers®'
+        course.display_name = u'edx/abc/courseregisters®'
         download_url = 'http://s3.edx/cert'
 
         cert_status = {
@@ -217,15 +200,33 @@ class CourseEndingTest(TestCase):
             'download_url': download_url,
             'mode': 'honor'
         }
-        linkedin_current = Mock()
-        linkedin_current.enabled = True
-        linkedin_current.linkedin_url = 'http://www.linkedin.com/profile/add?_ed=0'
+        LinkedInUrlConfiguration(linkedin_url='http://www.linkedin.com/profile/add?_ed=0', enabled=True).save()
 
-        with patch('student.views.LinkedInUrlConfiguration.current', return_value=linkedin_current):
-            status_dict = _cert_info(user, course, cert_status)
-            self.assertIn('http://www.linkedin.com/profile/add?_ed=0', status_dict['linked_in_url'])
-            self.assertIn('pfCertificationName', status_dict['linked_in_url'])
-            self.assertIn('pfCertificationUrl', status_dict['linked_in_url'])
+        status_dict = _cert_info(user, course, cert_status)
+        self.assertIn('http://www.linkedin.com/profile/add?_ed=0', status_dict['linked_in_url'])
+        self.assertIn('pfCertificationName', status_dict['linked_in_url'])
+        self.assertIn('pfCertificationUrl', status_dict['linked_in_url'])
+        self.assertIn('courseregisters', status_dict['linked_in_url'])
+
+    def test_linked_in_url_with_add_to_profile_button(self):
+        # Test case with linked-in add to profile button. Linked-In URL has required params.
+        user = Mock(username="fred")
+        survey_url = "http://a_survey.com"
+        course = Mock(end_of_course_survey_url=survey_url, certificates_display_behavior='end')
+
+        LinkedInUrlConfiguration(linkedin_url='http://www.linkedin.com/profile/add?_ed=0', enabled=True).save()
+
+        download_url = 'http://s3.edx/cert'
+        cert_status = {
+            'status': 'downloadable', 'grade': '67',
+            'download_url': download_url,
+            'mode': 'honor'
+        }
+
+        status_dict = _cert_info(user, course, cert_status)
+        self.assertIn('http://www.linkedin.com/profile/add?_ed=0', status_dict['linked_in_url'])
+        self.assertIn('pfCertificationName', status_dict['linked_in_url'])
+        self.assertIn('pfCertificationUrl', status_dict['linked_in_url'])
 
 
 class DashboardTest(ModuleStoreTestCase):
@@ -435,6 +436,15 @@ class DashboardTest(ModuleStoreTestCase):
     @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
     def test_linked_in_add_to_profile_btn_with_certificate(self):
 
+        """
+        If user has a certificate with valid linked-in config then show Add Certificate to LinkedIn button
+        should be visible. and it has URL value with valid parameters.
+        """
+
+        self.client.login(username="jack", password="test")
+        url = 'http://www.linkedin.com/profile/add?_ed=0'
+        LinkedInUrlConfiguration(linkedin_url=url, enabled=True).save()
+
         CourseModeFactory.create(
             course_id=self.course.id,
             mode_slug='verified',
@@ -442,19 +452,31 @@ class DashboardTest(ModuleStoreTestCase):
             expiration_datetime=datetime.now(pytz.UTC) - timedelta(days=1)
         )
 
-        self.course.end = datetime.now()
-        self.course.certificates_display_behavior = 'end'
+        CourseEnrollment.enroll(self.user, self.course.id, mode='honor')
+
+        self.course.start = datetime.now(pytz.UTC) - timedelta(days=2)
+        self.course.end = datetime.now(pytz.UTC) - timedelta(days=1)
+        self.course.display_name = u"Omega"
         self.course = self.update_course(self.course, self.user.id)
 
+        download_url = 'www.edx.org'
         GeneratedCertificateFactory.create(
             user=self.user,
             course_id=self.course.id,
             status=CertificateStatuses.downloadable,
-            mode='verified'
+            mode='verified',
+            grade='67',
+            download_url=download_url
         )
         response = self.client.get(reverse('dashboard'))
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEquals(response.status_code, 200)
+        self.assertIn('Add Certificate to LinkedIn', response.content)
+
+        response_url = '{url}&pfCertificationUrl={download}&pfCertificationName=Verified+Certificate+for+{name}'.format(
+            url=url, download=download_url, name='Omega'
+        )
+        self.assertContains(response, response_url)
 
 
 class EnrollInCourseTest(TestCase):

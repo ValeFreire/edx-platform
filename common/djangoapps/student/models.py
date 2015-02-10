@@ -21,6 +21,7 @@ import dogstats_wrapper as dog_stats_api
 from django.db.models import Q
 import pytz
 
+from django.utils.translation import ugettext_lazy
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -1444,8 +1445,10 @@ class LinkedInUrlConfiguration(ConfigurationModel):
     # linked-in URL field
     linkedin_url = models.URLField(
         blank=True,
-        help_text="A LinkedIn URL for the Add-to-profile Certificates. e.g http://www.linkedin.com/profile/add?_ed="
-                  "0_0dPSPyS070e0HsE9HNz_13_d11_"
+        help_text=ugettext_lazy(
+            u"A LinkedIn URL for the Add-to-profile Certificates. "
+            u"e.g http://www.linkedin.com/profile/add?_ed=0_0dPSPyS070e0HsE9HNz_13_d11_"
+        )
     )
 
     def __unicode__(self):

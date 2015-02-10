@@ -330,7 +330,7 @@ def _cert_info(user, course, cert_status):
         'show_download_url': status == 'ready',
         'show_disabled_download_button': status == 'generating',
         'mode': cert_status.get('mode', None),
-        'linked_in_url': False
+        'linked_in_url': None
     }
 
     if (status in ('generating', 'ready', 'notpassing', 'restricted') and
@@ -366,7 +366,9 @@ def _cert_info(user, course, cert_status):
                     'pfCertificationUrl': cert_status['download_url']
                 }
 
-                status_dict['linked_in_url'] = current_config.linkedin_url + "&" + urlencode(params_dict)
+                status_dict['linked_in_url'] = u'{link_url}&{params}'.format(
+                    link_url=current_config.linkedin_url, params=urlencode(params_dict)
+                )
 
     if status in ('generating', 'ready', 'notpassing', 'restricted'):
         if 'grade' not in cert_status:
